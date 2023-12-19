@@ -1,0 +1,20 @@
+{
+  "name": "wikipedia-information-retrieval",
+  "version": "0.1.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "franc-min": "^6.1.0",
+    "node-html-parser": "^6.1.11"
+  }
+}
