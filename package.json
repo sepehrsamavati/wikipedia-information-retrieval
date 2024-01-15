@@ -5,7 +5,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "crawler:seed": "node ./build/apps/crawler/seed.js"
   },
   "keywords": [],
   "author": "",
