@@ -11,12 +11,14 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/mongoose": "^5.11.97",
     "@types/node": "^20.11.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {
     "dotenv": "^16.3.1",
     "franc-min": "^6.1.0",
+    "mongoose": "^8.0.4",
     "node-html-parser": "^6.1.11"
   }
 }
