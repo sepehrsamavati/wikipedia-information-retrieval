@@ -1,27 +1,28 @@
-import { parse } from "node-html-parser";
-import isRelated from "./modules/isRelated.js";
-import isPersian from "./modules/isPersian.js";
-import getRawText from "./modules/getRawText.js";
+import fetchWorker from "./main.worker.js";
+import { connect } from "../../infrastructure/mongo/connection.js";
+import { setStatusById, takeUrl } from "../../infrastructure/mongo/repository/urlFrontier.js";
 
-export default async function ([url]: [string]) {
-    const rawHtml = await (await fetch(url)).text();
+await connect();
 
-    const root = parse(rawHtml, {
-        blockTextElements: {
-            script: true,
-            noscript: true,
-            code: true,
-            style: false,
+const doCycle = async () => {
+    const urlToCrawl = await takeUrl();
+
+    if (urlToCrawl) {
+        let content: string | null = null;
+
+        try {
+            content = await fetchWorker([urlToCrawl.url]);
+        } catch (e) {
+            console.error(e);
+            await setStatusById(urlToCrawl._id, "error");
         }
-    });
 
-    const rawText = getRawText(root);
+        if (content) {
+            debugger
+        }
+    }
 
-    if (!isRelated(rawText))
-        return null;
+    setTimeout(doCycle, 1e3);
+};
 
-    if (!isPersian(rawText))
-        return null;
-
-    return rawText;
-}
+doCycle();
