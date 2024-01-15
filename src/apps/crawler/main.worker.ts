@@ -2,6 +2,7 @@ import { parse } from "node-html-parser";
 import isRelated from "./modules/isRelated.js";
 import isPersian from "./modules/isPersian.js";
 import getRawText from "./modules/getRawText.js";
+import getPageLinks from "./modules/getPageLinks.js";
 
 export default async function ([url]: [string]) {
     const rawHtml = await (await fetch(url)).text();
@@ -23,5 +24,10 @@ export default async function ([url]: [string]) {
     if (!isPersian(rawText))
         return null;
 
-    return rawText;
+    const childLinks = getPageLinks(root);
+
+    return {
+        rawText,
+        links: childLinks
+    };
 }

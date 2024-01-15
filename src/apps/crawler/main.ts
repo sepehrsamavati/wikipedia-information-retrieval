@@ -1,6 +1,6 @@
 import fetchWorker from "./main.worker.js";
 import { connect } from "../../infrastructure/mongo/connection.js";
-import { setStatusById, takeUrl } from "../../infrastructure/mongo/repository/urlFrontier.js";
+import { add, setStatusById, takeUrl } from "../../infrastructure/mongo/repository/urlFrontier.js";
 
 await connect();
 
@@ -8,7 +8,13 @@ const doCycle = async () => {
     const urlToCrawl = await takeUrl();
 
     if (urlToCrawl) {
-        let content: string | null = null;
+        let content: {
+            rawText: string;
+            links: {
+                text: string;
+                url: string;
+            }[];
+        } | null = null;
 
         try {
             content = await fetchWorker([urlToCrawl.url]);
@@ -18,7 +24,16 @@ const doCycle = async () => {
         }
 
         if (content) {
-            debugger
+            await Promise.allSettled(content.links.map(l => {
+                const url = new URL(urlToCrawl.url);
+                url.pathname = l.url;
+                return add({
+                    url: url.toString(),
+                    depth: urlToCrawl.depth + 1,
+                    createDate: new Date(),
+                    status: "not_visited"
+                });
+            }));
         }
     }
 
