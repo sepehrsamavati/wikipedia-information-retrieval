@@ -6,8 +6,8 @@ export const getSearchUrl = (word: string) => baseSearchUrl + word;
 
 export const getSearchResult = (root: HTMLElement) => {
     try {
-        // @ts-ignore
-        return [...(root.querySelector(".mw-search-results") as unknown as HTMLElement).childNodes].map(e => ((e as unknown as HTMLElement).querySelector("a") as HTMLAnchorElement).attributes.href as string);
+        return [...(root.querySelector(".mw-search-results") as unknown as HTMLElement).childNodes]
+        .map(e => (((e as unknown as HTMLElement).querySelector("a") as unknown as HTMLAnchorElement).attributes as any).href as string);
     } catch {
         return [];
     }
