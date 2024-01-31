@@ -27,6 +27,7 @@ export default async function ([url]: [string]) {
     const childLinks = getPageLinks(root);
 
     return {
+        rawHtml: root.innerHTML,
         rawText,
         links: childLinks
     };

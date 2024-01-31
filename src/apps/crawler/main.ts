@@ -1,8 +1,9 @@
+import config from "../../config.js";
 import { randomUUID } from "node:crypto";
 import fetchWorker from "./main.worker.js";
 import { connect } from "../../infrastructure/mongo/connection.js";
-import { add, addLinkedBy, count, exists, setStatusById, takeUrl } from "../../infrastructure/mongo/repository/urlFrontier.js";
-import config from "../../config.js";
+import { add as addDocument } from "../../infrastructure/mongo/repository/document.js";
+import { add as addUrl, addLinkedBy, count, exists, setStatusById, takeUrl } from "../../infrastructure/mongo/repository/urlFrontier.js";
 
 const workerId = `${process.pid}:${randomUUID()}`;
 let doNotAdd = false;
@@ -15,6 +16,7 @@ const doCycle = async () => {
 
     if (urlToCrawl) {
         let content: {
+            rawHtml: string;
             rawText: string;
             links: {
                 text: string;
@@ -40,7 +42,7 @@ const doCycle = async () => {
                         url.pathname = l.url;
                         const alreadyAdded = await exists(url.toString());
                         if (alreadyAdded === null)
-                            return add({
+                            return addUrl({
                                 parentUrl: urlToCrawl._id.toString(),
                                 url: url.toString(),
                                 depth: urlToCrawl.depth + 1,
@@ -57,6 +59,15 @@ const doCycle = async () => {
                     console.warn(`URL frontier filled with ${urlsCount} URLs; Not adding new links...`);
                 }
             }
+            await addDocument({
+                crawlerId: workerId,
+                createDate: new Date(),
+                linkedBy: [],
+                processStatus: "not_processed",
+                url: urlToCrawl._id.toString(),
+                rawHtml: content.rawHtml,
+                rawContent: content.rawText,
+            });
         }
         if (!errorOccurred)
             await setStatusById(urlToCrawl._id, "visited");
