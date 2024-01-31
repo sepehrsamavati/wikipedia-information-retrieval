@@ -2,6 +2,23 @@ import type { Types } from "mongoose";
 import UrlFrontierModel from "../models/urlFrontier.js";
 import type { UrlCrawlStatus, UrlFrontierUrl } from "../../../types/entities/urlFrontier";
 
+export const exists = async (url: string) => {
+    try {
+        return await UrlFrontierModel.exists({ url: url });
+    } catch {
+        return null;
+    }
+};
+
+export const addLinkedBy = async (id: Types.ObjectId | string, linkedBy: Types.ObjectId | string) => {
+    try {
+        const res = await UrlFrontierModel.findByIdAndUpdate(id, { $push: { linkedBy } });
+        return res !== null;
+    } catch {
+        return null;
+    }
+};
+
 export const add = async (url: UrlFrontierUrl) => {
     try {
         const res = await UrlFrontierModel.create(url);
@@ -11,9 +28,9 @@ export const add = async (url: UrlFrontierUrl) => {
     }
 };
 
-export const takeUrl = async (_crawlerId?: unknown) => {
+export const takeUrl = async (crawlerId: string) => {
     try {
-        const res = await UrlFrontierModel.findOneAndUpdate<UrlFrontierUrl>({ status: "not_visited" }, { status: "in_progress" }).lean();
+        const res = await UrlFrontierModel.findOneAndUpdate<UrlFrontierUrl>({ status: "not_visited" }, { crawlerId, status: "in_progress" }).lean();
         return (res as unknown as (UrlFrontierUrl & { _id: Types.ObjectId })) ?? null;
     } catch {
         return null;
@@ -24,7 +41,7 @@ export const setStatusById = async (_id: Types.ObjectId | string, status: UrlCra
     try {
         const updateObject: Partial<UrlFrontierUrl> = { status };
 
-        if(status === "visited") {
+        if (status === "visited") {
             updateObject.visitedDate = new Date();
         }
 
@@ -32,5 +49,13 @@ export const setStatusById = async (_id: Types.ObjectId | string, status: UrlCra
         return true;
     } catch {
         return false;
+    }
+};
+
+export const count = async () => {
+    try {
+        return await UrlFrontierModel.countDocuments();
+    } catch {
+        return null;
     }
 };

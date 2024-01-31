@@ -9,6 +9,7 @@ await Promise.allSettled(config.crawler.seedLinks.map(link => add({
     depth: 0,
     createDate: new Date(),
     status: "not_visited",
+    linkedBy: []
 })));
 
 console.log("URL frontier seed done ✅");

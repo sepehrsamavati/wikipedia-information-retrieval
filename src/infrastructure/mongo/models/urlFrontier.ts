@@ -1,7 +1,25 @@
 import mongoose from "mongoose";
 import { UrlFrontierUrl, crawlStatuses } from "../../../types/entities/urlFrontier.js";
 
+export const urlFrontierSchemaInfo = {
+    modelName: 'UrlFrontier',
+    collectionName: 'urlFrontier'
+} as const;
+
 const schema = new mongoose.Schema<UrlFrontierUrl>({
+    crawlerId: {
+        type: String,
+        required: false,
+    },
+    parentUrl: {
+        type: mongoose.Types.ObjectId,
+        ref: urlFrontierSchemaInfo.modelName
+    },
+    linkedBy: [{
+        type: mongoose.Types.ObjectId,
+        ref: urlFrontierSchemaInfo.modelName,
+        required: true
+    }],
 	url: {
 		type: String,
 		required: true,
@@ -31,8 +49,8 @@ const schema = new mongoose.Schema<UrlFrontierUrl>({
         type: Date,
         required: false
     }
-}, { versionKey: false, collection: 'urlFrontier' });
+}, { versionKey: false, collection: urlFrontierSchemaInfo.collectionName });
 
-const UrlFrontierModel = mongoose.model('UrlFrontier', schema);
+const UrlFrontierModel = mongoose.model(urlFrontierSchemaInfo.modelName, schema);
 
 export default UrlFrontierModel;
