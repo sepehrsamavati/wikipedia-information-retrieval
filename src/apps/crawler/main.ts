@@ -11,6 +11,7 @@ await connect();
 
 const doCycle = async () => {
     const urlToCrawl = await takeUrl(workerId);
+    let errorOccurred = false;
 
     if (urlToCrawl) {
         let content: {
@@ -25,6 +26,7 @@ const doCycle = async () => {
             content = await fetchWorker([urlToCrawl.url]);
         } catch (e) {
             console.error(e);
+            errorOccurred = true;
             await setStatusById(urlToCrawl._id, "error");
         }
 
@@ -55,10 +57,9 @@ const doCycle = async () => {
                     console.warn(`URL frontier filled with ${urlsCount} URLs; Not adding new links...`);
                 }
             }
-            await setStatusById(urlToCrawl._id, "visited");
-        } else {
-            await setStatusById(urlToCrawl._id, "error");
         }
+        if (!errorOccurred)
+            await setStatusById(urlToCrawl._id, "visited");
     }
 
     setTimeout(doCycle, 1e3);
