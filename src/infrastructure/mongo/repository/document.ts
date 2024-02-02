@@ -29,9 +29,9 @@ export const add = async (document: Document) => {
     }
 };
 
-export const takeUrl = async (crawlerId: string) => {
+export const takeDocument = async (processorId: string) => {
     try {
-        const res = await DocumentModel.findOneAndUpdate<Document>({ status: "not_visited" }, { crawlerId, status: "in_progress" }).lean();
+        const res = await DocumentModel.findOneAndUpdate<Document>({ processStatus: "not_processed" }, { processorId, processStatus: "processing" }).lean();
         return (res as unknown as (Document & { _id: Types.ObjectId })) ?? null;
     } catch {
         return null;
