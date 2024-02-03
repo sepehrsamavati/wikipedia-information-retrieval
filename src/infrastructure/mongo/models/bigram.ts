@@ -8,10 +8,15 @@ export const bigramSchemaInfo = {
 } as const;
 
 const schema = new mongoose.Schema<Bigram>({
-    value: {
+    start: {
         type: String,
-        unique: true,
+        index: true,
         required: true,
+    },
+    end: {
+        type: String,
+        index: true,
+        required: true
     },
     documents: [{
         type: mongoose.Types.ObjectId,
@@ -19,6 +24,8 @@ const schema = new mongoose.Schema<Bigram>({
         required: true,
     }]
 }, { versionKey: false, collection: bigramSchemaInfo.collectionName });
+
+schema.index({ start: 1, end: 1 }, { unique: true });
 
 const BigramModel = mongoose.model(bigramSchemaInfo.modelName, schema);
 

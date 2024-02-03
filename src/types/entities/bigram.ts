@@ -1,4 +1,5 @@
 export type Bigram = {
-    value: string;
+    start: string;
+    end: string;
     documents: string[];
 }
