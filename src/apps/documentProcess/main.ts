@@ -1,9 +1,11 @@
+import config from "../../config.js";
 import { randomUUID } from "node:crypto";
+import stemmer from "./modules/stemmer.js";
 import { connect } from "../../infrastructure/mongo/connection.js";
+import { upsert as upsertToken } from "../../infrastructure/mongo/repository/token.js";
+import { upsert as upsertBigram } from "../../infrastructure/mongo/repository/bigram.js";
 import { setStatusById, takeDocument } from "../../infrastructure/mongo/repository/document.js";
 import { extractPersianWords, halfSpaceToFullSpace, persianToEnglishDigits, removeIgnoredWords, removeWikiReferences } from "./modules/base.js";
-import { upsert } from "../../infrastructure/mongo/repository/token.js";
-import stemmer from "./modules/stemmer.js";
 
 const workerId = `${process.pid}:${randomUUID()}`;
 
@@ -39,14 +41,24 @@ const doProcessCycle = async () => {
                 words.map(word => stemmer(word))
             );
 
+            let previousToken: string = config.bigramStopChar;
+
             for (const token of tokens) {
-                await upsert(token, document._id);
+                await Promise.all([
+                    upsertBigram([previousToken, token], document._id),
+                    upsertToken(token, document._id)
+                ]);
+                previousToken = token;
             }
+            await upsertBigram([previousToken, config.bigramStopChar], document._id);
 
             await setStatusById(document._id, "processed");
         } catch {
             await setStatusById(document._id, "error");
         }
+    } else {
+        console.info("No document to process, exiting app");
+        process.exitCode = 0;
     }
 
     setTimeout(doProcessCycle, 1);

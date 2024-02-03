@@ -9,7 +9,8 @@ export const upsert = async (bigram: [string, string], documentId: Types.ObjectI
             return res !== null;
         } else {
             const res = await BigramModel.create({
-                value: bigram,
+                start: bigram[0],
+                end: bigram[1],
                 documents: [documentId]
             });
             return res !== null;
