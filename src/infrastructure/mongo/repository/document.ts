@@ -1,6 +1,7 @@
 import type { Types } from "mongoose";
-import DocumentModel from "../models/document.js";
+import DocumentModel, { documentSchemaInfo } from "../models/document.js";
 import type { Document, DocumentProcessStatuses } from "../../../types/entities/document";
+import { urlFrontierSchemaInfo } from "../models/urlFrontier.js";
 
 export const exists = async (url: string) => {
     try {
@@ -23,7 +24,7 @@ export const add = async (document: Document) => {
     try {
         const res = await DocumentModel.create(document);
         return true;
-    } catch(e) {
+    } catch (e) {
         console.error("Document add error", e);
         return false;
     }
@@ -57,6 +58,70 @@ export const count = async () => {
     try {
         return await DocumentModel.countDocuments();
     } catch {
+        return null;
+    }
+};
+
+export const addRelations = async () => {
+    try {
+        const documents: { _id: string; relatedDocuments: string[] }[] = await DocumentModel.aggregate([
+            {
+                $project: {
+                    url: 1,
+                },
+            },
+            {
+                $lookup: {
+                    from: urlFrontierSchemaInfo.collectionName,
+                    localField: "url",
+                    foreignField: "_id",
+                    as: "relatedUrls",
+                    pipeline: [
+                        {
+                            $project: {
+                                _id: 1,
+                                linkedBy: 1,
+                            },
+                        },
+                    ],
+                },
+            },
+            {
+                $unwind: "$relatedUrls",
+            },
+            {
+                $lookup: {
+                    from: documentSchemaInfo.collectionName,
+                    localField: "relatedUrls.linkedBy",
+                    foreignField: "url",
+                    as: "relatedDocuments",
+                    pipeline: [
+                        {
+                            $project: {
+                                _id: 1,
+                            },
+                        },
+                    ],
+                },
+            },
+            {
+                $project: {
+                    relatedDocuments: "$relatedDocuments._id",
+                },
+            },
+        ]).exec();
+
+        let insertCount = 0;
+
+        for (const doc of documents) {
+            console.log(`${++insertCount}/${documents.length}`);
+            for (const relatedDocId of doc.relatedDocuments) {
+                await DocumentModel.findByIdAndUpdate(doc._id, { $push: { linkedBy: relatedDocId } });
+            }
+        }
+
+    } catch (e) {
+        console.error("Add document relation", e);
         return null;
     }
 };
