@@ -1,7 +1,7 @@
 import config from "../../config.js";
 import { randomUUID } from "node:crypto";
 import stemmer from "./modules/stemmer.js";
-import { connect } from "../../infrastructure/mongo/connection.js";
+import { closeConnection, connect } from "../../infrastructure/mongo/connection.js";
 import { upsert as upsertToken } from "../../infrastructure/mongo/repository/token.js";
 import { upsert as upsertBigram } from "../../infrastructure/mongo/repository/bigram.js";
 import { setStatusById, takeDocument } from "../../infrastructure/mongo/repository/document.js";
@@ -12,6 +12,7 @@ const workerId = `${process.pid}:${randomUUID()}`;
 await connect();
 
 let insertCount = 0;
+let shouldExit = false;
 const doProcessCycle = async () => {
     const document = await takeDocument(workerId);
 
@@ -58,10 +59,15 @@ const doProcessCycle = async () => {
         }
     } else {
         console.info("No document to process, exiting app");
-        process.exitCode = 0;
+        shouldExit = true;
     }
 
-    setTimeout(doProcessCycle, 1);
+    if (shouldExit) {
+        await closeConnection();
+        process.exit(0);
+    }
+    else
+        setTimeout(doProcessCycle, 1);
 };
 
 doProcessCycle();
