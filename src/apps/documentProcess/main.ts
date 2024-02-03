@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { connect } from "../../infrastructure/mongo/connection.js";
 import { setStatusById, takeDocument } from "../../infrastructure/mongo/repository/document.js";
-import { extractPersianWords, halfSpaceToFullSpace, persianToEnglishDigits, removeWikiReferences } from "./modules/base.js";
+import { extractPersianWords, halfSpaceToFullSpace, persianToEnglishDigits, removeIgnoredWords, removeWikiReferences } from "./modules/base.js";
 import { upsert } from "../../infrastructure/mongo/repository/token.js";
+import stemmer from "./modules/stemmer.js";
 
 const workerId = `${process.pid}:${randomUUID()}`;
 
@@ -26,9 +27,17 @@ const doProcessCycle = async () => {
             // نرم‌افزار -> نرم افزار
             content = halfSpaceToFullSpace(content);
 
-            const tokens =
-                extractPersianWords(content)
-                    .filter(word => word.length > 2);
+            // extract only persian chars / remove ignored words / remove short words
+            const words =
+                removeIgnoredWords(
+                    extractPersianWords(content)
+                        .filter(word => word.length > 2)
+                );
+
+            // get words stem and remove ignored words
+            const tokens = removeIgnoredWords(
+                words.map(word => stemmer(word))
+            );
 
             for (const token of tokens) {
                 await upsert(token, document._id);
