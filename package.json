@@ -8,7 +8,8 @@
     "build": "tsc",
     "crawler": "node ./build/apps/crawler/main.js",
     "crawler:seed": "node ./build/apps/crawler/seed.js",
-    "process": "node ./build/apps/documentProcess/main.js"
+    "process": "node ./build/apps/documentProcess/main.js",
+    "db:index": "node ./build/infrastructure/mongo/ensureIndexes.js"
   },
   "keywords": [],
   "author": "",
