@@ -18,3 +18,44 @@ export const upsert = async (token: string, documentId: Types.ObjectId | string)
         return null;
     }
 };
+
+export const calculateFrequency = async () => {
+    try {
+        await TokenModel.aggregate([
+            {
+                $addFields: {
+                    docScore: {
+                        $size: "$documents",
+                    },
+                },
+            },
+            {
+                $sort: {
+                    docScore: -1,
+                },
+            },
+            {
+                $project: {
+                    docScore: 1,
+                    uniqueDocuments: {
+                        $setUnion: ["$documents"],
+                    },
+                },
+            },
+            {
+                $addFields: {
+                    repoScore: {
+                        $size: "$uniqueDocuments",
+                    },
+                },
+            },
+            {
+                $out: "tokenFrequency",
+            },
+        ]);
+        return true;
+    } catch (e) {
+        console.error(e);
+        return null;
+    }
+};
