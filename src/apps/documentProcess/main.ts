@@ -5,7 +5,7 @@ import { closeConnection, connect } from "../../infrastructure/mongo/connection.
 import { upsert as upsertToken } from "../../infrastructure/mongo/repository/token.js";
 import { upsert as upsertBigram } from "../../infrastructure/mongo/repository/bigram.js";
 import { setStatusById, takeDocument } from "../../infrastructure/mongo/repository/document.js";
-import { extractPersianWords, halfSpaceToFullSpace, persianToEnglishDigits, removeIgnoredWords, removeWikiReferences } from "./modules/base.js";
+import { extractPersianWords, halfSpaceToFullSpace, persianToEnglishDigits, removeDiacritics, removeIgnoredWords, removeWikiReferences } from "./modules/base.js";
 
 const workerId = `${process.pid}:${randomUUID()}`;
 
@@ -30,6 +30,8 @@ const doProcessCycle = async () => {
             // نرم‌افزار -> نرم افزار
             content = halfSpaceToFullSpace(content);
 
+            content = removeDiacritics(content);
+
             // extract only persian chars / remove ignored words / remove short words
             const words =
                 removeIgnoredWords(
@@ -40,7 +42,7 @@ const doProcessCycle = async () => {
             // get words stem and remove ignored words
             const tokens = removeIgnoredWords(
                 words.map(word => stemmer(word))
-            );
+            ).filter(word => word.length > 2);
 
             let previousToken: string = config.bigramStopChar;
 
