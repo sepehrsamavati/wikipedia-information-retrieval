@@ -4,6 +4,9 @@ dotenv.config();
 
 const config = Object.freeze({
     bigramStopChar: '#',
+    httpServer: {
+        port: 3023
+    },
     crawler: {
         urlFrontierCountLimit: parseInt(process.env.WIR_URL_FRONTIER_LIMIT ?? '10'),
         seedLinks: (fs.readFileSync(process.env.WIR_CRAWLER_SEED_URLS_FILE ?? "").toString().split('\n').map(line => line.trim().toLocaleLowerCase()).filter(line => URL.canParse(line))) ?? null,
