@@ -1,5 +1,6 @@
 import type { Types } from "mongoose";
 import TokenModel from "../models/token.js";
+import { tokenFrequencySchemaInfo } from "../models/tokenFrequency.js";
 
 export const upsert = async (token: string, documentId: Types.ObjectId | string) => {
     try {
@@ -50,7 +51,7 @@ export const calculateFrequency = async () => {
                 },
             },
             {
-                $out: "tokenFrequency",
+                $out: tokenFrequencySchemaInfo.collectionName,
             },
         ]);
         return true;
