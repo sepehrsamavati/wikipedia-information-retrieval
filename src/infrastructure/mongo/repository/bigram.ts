@@ -30,7 +30,8 @@ export const guessText = async (bigram: [string?, string?]) => {
             filter.start = config.bigramStopChar;
         else {
             filter.start = start;
-            filter.end = end ?? config.bigramStopChar;
+            if (end)
+                filter.end = end;
         }
 
         const res: { _id: Types.ObjectId; start: string; end: string; score: number; }[] = await BigramModel.aggregate([
