@@ -1,6 +1,6 @@
 import type { Types } from "mongoose";
 import TokenModel from "../models/token.js";
-import { documentSchemaInfo } from "../models/document.js";
+import DocumentModel, { documentSchemaInfo } from "../models/document.js";
 import { tokenFrequencySchemaInfo } from "../models/tokenFrequency.js";
 
 export const upsert = async (token: string, documentId: Types.ObjectId | string) => {
@@ -63,6 +63,7 @@ export const calculateFrequency = async () => {
 };
 
 export const getDocuments = async (tokens: string[]) => {
+    const docCount = await DocumentModel.countDocuments({ processStatus: "processed" });
     const res = await TokenModel.aggregate([
         {
             $match: {
@@ -172,7 +173,7 @@ export const getDocuments = async (tokens: string[]) => {
                             $log10: {
                                 $divide: [
                                     {
-                                        $literal: 905,
+                                        $literal: docCount,
                                     },
                                     // Replace with the total number of documents
                                     "$df", // Assuming you have a field named "df" for Document Frequency
