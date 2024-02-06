@@ -6,6 +6,7 @@ export type Document = {
     crawlerId: string;
     linkedBy: string[];
     processorId?: string;
+    title: string;
     rawContent: string;
     rawHtml: string;
     url: string;

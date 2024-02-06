@@ -21,6 +21,10 @@ const schema = new mongoose.Schema<Document>({
         ref: documentSchemaInfo.modelName,
         required: true
     }],
+    title: {
+        type: String,
+        required: true,
+    },
     rawContent: {
         type: String,
         required: true,

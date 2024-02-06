@@ -1,4 +1,5 @@
 import { parse } from "node-html-parser";
+import getTitle from "./modules/getTitle.js";
 import isRelated from "./modules/isRelated.js";
 import isPersian from "./modules/isPersian.js";
 import getRawText from "./modules/getRawText.js";
@@ -27,6 +28,7 @@ export default async function ([url]: [string]) {
     const childLinks = getPageLinks(root);
 
     return {
+        title: getTitle(root),
         rawHtml: root.innerHTML,
         rawText,
         links: childLinks

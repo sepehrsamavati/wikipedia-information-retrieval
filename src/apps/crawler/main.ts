@@ -16,6 +16,7 @@ const doCycle = async () => {
 
     if (urlToCrawl) {
         let content: {
+            title: string;
             rawHtml: string;
             rawText: string;
             links: {
@@ -65,6 +66,7 @@ const doCycle = async () => {
                 linkedBy: [],
                 processStatus: "not_processed",
                 url: urlToCrawl._id.toString(),
+                title: content.title,
                 rawHtml: content.rawHtml,
                 rawContent: content.rawText,
             });
