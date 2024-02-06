@@ -1,5 +1,5 @@
 export type TokenFrequency = {
-    docScore: number;
-    repoScore: number;
+    collectionFrequency: number;
+    documentFrequency: number;
     uniqueDocuments: string[];
 }

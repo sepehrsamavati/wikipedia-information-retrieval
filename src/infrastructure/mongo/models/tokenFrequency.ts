@@ -8,11 +8,11 @@ export const tokenFrequencySchemaInfo = {
 } as const;
 
 const schema = new mongoose.Schema<TokenFrequency>({
-    docScore: {
+    collectionFrequency: {
         type: Number,
         required: true,
     },
-    repoScore: {
+    documentFrequency: {
         type: Number,
         required: true,
     },
