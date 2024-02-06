@@ -10,7 +10,9 @@
     "crawler:seed": "node ./build/apps/crawler/seed.js",
     "process": "node ./build/apps/documentProcess/main.js",
     "db:index": "node ./build/infrastructure/mongo/ensureIndexes.js",
-    "relation": "node ./build/apps/documentProcess/relation.js",
+    "relation": "node ./build/jobs/relation.js",
+    "frequency": "node ./build/jobs/calculateFrequency.js",
+    "addDocsTitle": "node ./build/jobs/addDocsTitle.js",
     "server": "node ./build/apps/server/main.js"
   },
   "keywords": [],
