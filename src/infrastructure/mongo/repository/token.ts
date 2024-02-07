@@ -73,12 +73,7 @@ export const getDocuments = async (tokens: string[]) => {
             },
         },
         {
-            $addFields:
-            /**
-             * newField: The new field name.
-             * expression: The new field expression.
-             */
-            {
+            $addFields: {
                 tid: "$_id",
                 document: "$documents",
             },
@@ -112,17 +107,8 @@ export const getDocuments = async (tokens: string[]) => {
             $unwind: "$document",
         },
         {
-            $lookup:
-            /**
-             * from: The target collection.
-             * localField: The local join field.
-             * foreignField: The target join field.
-             * as: The name for the results.
-             * pipeline: Optional pipeline to run on the foreign collection.
-             * let: Optional variables to use in the pipeline field stages.
-             */
-            {
-                from: "tokenFrequency",
+            $lookup: {
+                from: tokenFrequencySchemaInfo.collectionName,
                 localField: "tid",
                 foreignField: "_id",
                 as: "frequency",
@@ -139,43 +125,26 @@ export const getDocuments = async (tokens: string[]) => {
             $unwind: "$frequency",
         },
         {
-            $addFields:
-            /**
-             * newField: The new field name.
-             * expression: The new field expression.
-             */
-            {
+            $addFields: {
                 df: "$frequency.documentFrequency",
             },
         },
         {
-            $project:
-            /**
-             * specifications: The fields to
-             *   include or exclude.
-             */
-            {
+            $project: {
                 frequency: 0,
             },
         },
         {
-            $addFields:
-            /**
-             * newField: The new field name.
-             * expression: The new field expression.
-             */
-            {
+            $addFields: {
                 tfIdf: {
                     $multiply: [
                         "$tf",
-                        // Assuming you have a field named "tf" for Term Frequency
                         {
                             $log10: {
                                 $divide: [
                                     {
                                         $literal: docCount,
                                     },
-                                    // Replace with the total number of documents
                                     "$df", // Assuming you have a field named "df" for Document Frequency
                                 ],
                             },
