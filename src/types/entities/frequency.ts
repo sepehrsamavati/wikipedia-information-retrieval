@@ -1,4 +1,4 @@
-export type TokenFrequency = {
+export type Frequency = {
     collectionFrequency: number;
     documentFrequency: number;
     uniqueDocuments: string[];

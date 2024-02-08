@@ -1,7 +1,7 @@
 import type { Types } from "mongoose";
 import TokenModel from "../models/token.js";
+import { frequencySchemaInfo } from "../models/frequency.js";
 import DocumentModel, { documentSchemaInfo } from "../models/document.js";
-import { tokenFrequencySchemaInfo } from "../models/tokenFrequency.js";
 
 export const upsert = async (token: string, documentId: Types.ObjectId | string) => {
     try {
@@ -52,7 +52,7 @@ export const calculateFrequency = async () => {
                 },
             },
             {
-                $out: tokenFrequencySchemaInfo.collectionName,
+                $out: frequencySchemaInfo.collectionName,
             },
         ]);
         return true;
@@ -108,7 +108,7 @@ export const getDocuments = async (tokens: string[]) => {
         },
         {
             $lookup: {
-                from: tokenFrequencySchemaInfo.collectionName,
+                from: frequencySchemaInfo.collectionName,
                 localField: "tid",
                 foreignField: "_id",
                 as: "frequency",
