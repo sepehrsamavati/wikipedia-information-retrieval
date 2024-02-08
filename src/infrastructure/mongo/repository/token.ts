@@ -101,109 +101,150 @@ export const calculateTokenFrequency = async () => {
 };
 
 export const getDocuments = async (tokens: string[]) => {
-    const docCount = await DocumentModel.countDocuments({ processStatus: "processed" });
-    const res = await TokenModel.aggregate([
-        {
-            $match: {
-                value: {
-                    $in: tokens,
-                },
-            },
-        },
-        {
-            $addFields: {
-                tid: "$_id",
-                document: "$documents",
-            },
-        },
-        {
-            $unwind: "$document",
-        },
-        {
-            $group: {
-                _id: "$document",
-                tid: {
-                    $first: "$tid",
-                },
-                value: {
-                    $first: "$value",
-                },
-                tf: {
-                    $sum: 1,
-                },
-            },
-        },
-        {
-            $lookup: {
-                from: documentSchemaInfo.collectionName,
-                localField: "_id",
-                foreignField: "_id",
-                as: "document",
-            },
-        },
-        {
-            $unwind: "$document",
-        },
-        {
-            $lookup: {
-                from: frequencySchemaInfo.collectionName,
-                localField: "tid",
-                foreignField: "_id",
-                as: "frequency",
-                pipeline: [
-                    {
-                        $project: {
-                            documentFrequency: 1,
-                        },
+    try {
+        const docCount = await DocumentModel.countDocuments({ processStatus: "processed" });
+        const res = await TokenModel.aggregate([
+            {
+                $match: {
+                    value: {
+                        $in: tokens,
                     },
-                ],
+                },
             },
-        },
-        {
-            $unwind: "$frequency",
-        },
-        {
-            $addFields: {
-                df: "$frequency.documentFrequency",
-            },
-        },
-        {
-            $project: {
-                frequency: 0,
-            },
-        },
-        {
-            $addFields: {
-                tfIdf: {
-                    $multiply: [
-                        "$tf",
+            {
+                $lookup: {
+                    from: documentTokenSchemaInfo.collectionName,
+                    localField: "_id",
+                    foreignField: "tokenId",
+                    as: "documents",
+                    pipeline: [
                         {
-                            $log10: {
-                                $divide: [
-                                    {
-                                        $literal: docCount,
-                                    },
-                                    "$df", // Assuming you have a field named "df" for Document Frequency
-                                ],
+                            $project: {
+                                _id: 0,
+                                tokenId: 0,
                             },
                         },
                     ],
                 },
             },
-        },
-        {
-            $sort: {
-                tfIdf: -1,
+            {
+                $addFields: {
+                    tid: "$_id",
+                    document: "$documents",
+                },
             },
-        },
-        {
-            $project: {
-                _id: "$document._id",
-                content: "$document.rawContent",
-                tf: 1,
-                df: 1,
-                tfIdf: 1,
+            {
+                $project: {
+                    documents: 0,
+                },
             },
-        },
-    ]);
+            {
+                $unwind: "$document",
+            },
+            {
+                $addFields: {
+                    tf: "$document.tf",
+                },
+            },
+            {
+                $lookup: {
+                    from: frequencySchemaInfo.collectionName,
+                    localField: "tid",
+                    foreignField: "_id",
+                    as: "frequency",
+                    pipeline: [
+                        {
+                            $project: {
+                                documentFrequency: 1,
+                            },
+                        },
+                    ],
+                },
+            },
+            {
+                $unwind: "$frequency",
+            },
+            {
+                $addFields: {
+                    df: "$frequency.documentFrequency",
+                    documentId: "$document.documentId",
+                },
+            },
+            {
+                $project: {
+                    frequency: 0,
+                    document: 0,
+                },
+            },
+            {
+                $addFields: {
+                    tfIdf: {
+                        $multiply: [
+                            {
+                                $log10: {
+                                    $add: [1, "$tf"],
+                                },
+                            },
+                            {
+                                $log10: {
+                                    $divide: [
+                                        {
+                                            $literal: docCount,
+                                        },
+                                        "$df",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: "$documentId",
+                    tokens: {
+                        $addToSet: {
+                            tid: "$tid",
+                            value: "$value",
+                            tf: "$tf",
+                        },
+                    },
+                    score: {
+                        $sum: "$tfIdf",
+                    },
+                },
+            },
+            {
+                $sort: {
+                    score: -1,
+                },
+            },
+            {
+                $lookup: {
+                    from: documentSchemaInfo.collectionName,
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "document",
+                },
+            },
+            {
+                $unwind: "$document",
+            },
+            {
+                $project: {
+                    _id: "$document._id",
+                    content: "$document.rawContent",
+                    tf: 1,
+                    df: 1,
+                    tfIdf: 1,
+                },
+            },
+        ], {
+            allowDiskUse: true
+        }).exec();
+        return res;
+    } catch (e) {
+        console.error(e);
+        return null;
+    }
 };
