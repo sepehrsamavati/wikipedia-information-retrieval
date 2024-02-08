@@ -1,6 +1,7 @@
 import type { Types } from "mongoose";
 import TokenModel from "../models/token.js";
 import { frequencySchemaInfo } from "../models/frequency.js";
+import { documentTokenSchemaInfo } from "../models/documentToken.js";
 import DocumentModel, { documentSchemaInfo } from "../models/document.js";
 
 export const upsert = async (token: string, documentId: Types.ObjectId | string) => {
@@ -53,6 +54,43 @@ export const calculateFrequency = async () => {
             },
             {
                 $out: frequencySchemaInfo.collectionName,
+            },
+        ]);
+        return true;
+    } catch (e) {
+        console.error(e);
+        return null;
+    }
+};
+
+export const calculateTokenFrequency = async () => {
+    try {
+        await TokenModel.aggregate([
+            {
+                $unwind: "$documents",
+            },
+            {
+                $group: {
+                    _id: {
+                        documentId: "$documents",
+                        tokenId: "$_id",
+                    },
+                    tf: {
+                        $sum: 1,
+                    },
+                },
+            },
+            {
+                $replaceRoot: {
+                    newRoot: {
+                        tokenId: "$_id.tokenId",
+                        documentId: "$_id.documentId",
+                        tf: "$tf",
+                    },
+                },
+            },
+            {
+                $out: documentTokenSchemaInfo.collectionName,
             },
         ]);
         return true;
