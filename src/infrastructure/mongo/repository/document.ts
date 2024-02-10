@@ -2,6 +2,7 @@ import type { Types } from "mongoose";
 import DocumentModel, { documentSchemaInfo } from "../models/document.js";
 import type { Document, DocumentProcessStatuses } from "../../../types/entities/document";
 import { urlFrontierSchemaInfo } from "../models/urlFrontier.js";
+import DocumentLinkModel from "../models/documentLink.js";
 
 export const exists = async (url: string) => {
     try {
@@ -107,7 +108,10 @@ export const addRelations = async () => {
         for (const doc of documents) {
             console.log(`${++insertCount}/${documents.length}`);
             for (const relatedDocId of doc.relatedDocuments) {
-                await DocumentModel.findByIdAndUpdate(doc._id, { $push: { linkedBy: relatedDocId } });
+                await DocumentLinkModel.create({
+                    from: relatedDocId,
+                    to: doc._id
+                });
             }
         }
 
