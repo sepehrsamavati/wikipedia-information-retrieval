@@ -63,7 +63,6 @@ const doCycle = async () => {
             await addDocument({
                 crawlerId: workerId,
                 createDate: new Date(),
-                linkedBy: [],
                 processStatus: "not_processed",
                 url: urlToCrawl._id.toString(),
                 title: content.title,

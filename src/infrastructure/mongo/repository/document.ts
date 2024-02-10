@@ -11,15 +11,6 @@ export const exists = async (url: string) => {
     }
 };
 
-export const addLinkedBy = async (id: Types.ObjectId | string, linkedBy: Types.ObjectId | string) => {
-    try {
-        const res = await DocumentModel.findByIdAndUpdate(id, { $push: { linkedBy } });
-        return res !== null;
-    } catch {
-        return null;
-    }
-};
-
 export const add = async (document: Document) => {
     try {
         const res = await DocumentModel.create(document);

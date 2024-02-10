@@ -16,11 +16,6 @@ const schema = new mongoose.Schema<Document>({
         type: String,
         required: false,
     },
-    linkedBy: [{
-        type: mongoose.Types.ObjectId,
-        ref: documentSchemaInfo.modelName,
-        required: true
-    }],
     title: {
         type: String,
         required: true,

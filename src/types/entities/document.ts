@@ -4,7 +4,6 @@ export type DocumentProcessStatuses = typeof documentProcessStatuses[number];
 
 export type Document = {
     crawlerId: string;
-    linkedBy: string[];
     processorId?: string;
     title: string;
     rawContent: string;
