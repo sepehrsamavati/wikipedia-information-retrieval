@@ -234,11 +234,12 @@ export const getDocuments = async (tokens: string[]) => {
                 $project: {
                     _id: "$document._id",
                     content: "$document.rawContent",
-                    tf: 1,
-                    df: 1,
-                    tfIdf: 1,
+                    score: 1,
                 },
             },
+            {
+                $limit: 10
+            }
         ], {
             allowDiskUse: true
         }).exec();
