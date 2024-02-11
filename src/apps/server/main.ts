@@ -7,7 +7,7 @@ await connect();
 const server = app.listen(config.httpServer.port);
 
 server.once('listening', () => {
-    console.log("HTTP server ready.");
+    console.log(`HTTP server ready. Listening on port ${config.httpServer.port}`);
 });
 
 
