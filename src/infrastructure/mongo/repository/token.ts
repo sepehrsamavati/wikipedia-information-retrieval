@@ -102,8 +102,16 @@ export const calculateTokenFrequency = async () => {
 
 export const getDocuments = async (tokens: string[]) => {
     try {
+        const weightTfIdf = 0.7;
+        const weighPageRank = 0.3;
         const docCount = await DocumentModel.countDocuments({ processStatus: "processed" });
-        const res = await TokenModel.aggregate([
+        const res: {
+            _id: Types.ObjectId;
+            content: string;
+            tfIdfScore: number;
+            pageRank: number;
+            score: number;
+        }[] = await TokenModel.aggregate([
             {
                 $match: {
                     value: {
@@ -200,8 +208,31 @@ export const getDocuments = async (tokens: string[]) => {
                 },
             },
             {
+                $lookup: {
+                    from: documentSchemaInfo.collectionName,
+                    localField: "documentId",
+                    foreignField: "_id",
+                    as: "document",
+                    pipeline: [
+                        {
+                            $project: {
+                                rawContent: 1,
+                                pageRank: 1,
+                                url: 1,
+                            },
+                        },
+                    ],
+                }
+            },
+            {
+                $unwind: "$document"
+            },
+            {
                 $group: {
                     _id: "$documentId",
+                    document: {
+                        $first: "$document",
+                    },
                     tokens: {
                         $addToSet: {
                             tid: "$tid",
@@ -209,10 +240,20 @@ export const getDocuments = async (tokens: string[]) => {
                             tf: "$tf",
                         },
                     },
-                    score: {
+                    tfIdfScore: {
                         $sum: "$tfIdf",
                     },
-                },
+                }
+            },
+            {
+                $addFields: {
+                    score: {
+                        $add: [
+                            { $multiply: [weightTfIdf, "$tfIdfScore"], },
+                            { $multiply: [weighPageRank, "$document.pageRank"], },
+                        ],
+                    },
+                }
             },
             {
                 $sort: {
@@ -220,21 +261,12 @@ export const getDocuments = async (tokens: string[]) => {
                 },
             },
             {
-                $lookup: {
-                    from: documentSchemaInfo.collectionName,
-                    localField: "_id",
-                    foreignField: "_id",
-                    as: "document",
-                },
-            },
-            {
-                $unwind: "$document",
-            },
-            {
                 $project: {
                     _id: "$document._id",
                     content: "$document.rawContent",
-                    score: 1,
+                    tfIdfScore: 1,
+                    pageRank: "$document.pageRank",
+                    score: 1
                 },
             },
             {
