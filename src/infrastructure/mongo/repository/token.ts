@@ -1,6 +1,7 @@
-import type { Types } from "mongoose";
+import type { PipelineStage, Types } from "mongoose";
 import TokenModel from "../models/token.js";
 import { frequencySchemaInfo } from "../models/frequency.js";
+import { urlFrontierSchemaInfo } from "../models/urlFrontier.js";
 import { documentTokenSchemaInfo } from "../models/documentToken.js";
 import DocumentModel, { documentSchemaInfo } from "../models/document.js";
 
@@ -100,182 +101,225 @@ export const calculateTokenFrequency = async () => {
     }
 };
 
+const retrieveBaseAggregation = (tokens: string[], docCount: number) => {
+    const weightTfIdf = 0.7;
+    const weighPageRank = 0.3;
+    return (
+        [{
+            $match: {
+                value: {
+                    $in: tokens,
+                },
+            },
+        },
+        {
+            $lookup: {
+                from: documentTokenSchemaInfo.collectionName,
+                localField: "_id",
+                foreignField: "tokenId",
+                as: "documents",
+                pipeline: [
+                    {
+                        $project: {
+                            _id: 0,
+                            tokenId: 0,
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $addFields: {
+                tid: "$_id",
+                document: "$documents",
+            },
+        },
+        {
+            $project: {
+                documents: 0,
+            },
+        },
+        {
+            $unwind: "$document",
+        },
+        {
+            $addFields: {
+                tf: "$document.tf",
+            },
+        },
+        {
+            $lookup: {
+                from: frequencySchemaInfo.collectionName,
+                localField: "tid",
+                foreignField: "_id",
+                as: "frequency",
+                pipeline: [
+                    {
+                        $project: {
+                            documentFrequency: 1,
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $unwind: "$frequency",
+        },
+        {
+            $addFields: {
+                df: "$frequency.documentFrequency",
+                documentId: "$document.documentId",
+            },
+        },
+        {
+            $project: {
+                frequency: 0,
+                document: 0,
+            },
+        },
+        {
+            $addFields: {
+                tfIdf: {
+                    $multiply: [
+                        {
+                            $log10: {
+                                $add: [1, "$tf"],
+                            },
+                        },
+                        {
+                            $log10: {
+                                $divide: [
+                                    {
+                                        $literal: docCount,
+                                    },
+                                    "$df",
+                                ],
+                            },
+                        },
+                    ],
+                },
+            },
+        },
+        {
+            $lookup: {
+                from: documentSchemaInfo.collectionName,
+                localField: "documentId",
+                foreignField: "_id",
+                as: "document",
+                pipeline: [
+                    {
+                        $project: {
+                            rawContent: 1,
+                            pageRank: 1,
+                            url: 1,
+                            title: 1,
+                        },
+                    },
+                ],
+            }
+        },
+        {
+            $unwind: "$document"
+        },
+        {
+            $group: {
+                _id: "$documentId",
+                document: {
+                    $first: "$document",
+                },
+                tokens: {
+                    $addToSet: {
+                        tid: "$tid",
+                        value: "$value",
+                        tf: "$tf",
+                    },
+                },
+                tfIdfScore: {
+                    $sum: "$tfIdf",
+                },
+            }
+        },
+        {
+            $addFields: {
+                score: {
+                    $add: [
+                        { $multiply: [weightTfIdf, "$tfIdfScore"], },
+                        { $multiply: [weighPageRank, "$document.pageRank"], },
+                    ],
+                },
+            }
+        },
+        {
+            $sort: {
+                score: -1,
+            },
+        },
+        {
+            $project: {
+                _id: "$document._id",
+                title: "$document.title",
+                content: "$document.rawContent",
+                url: "$document.url",
+                tfIdfScore: 1,
+                pageRank: "$document.pageRank",
+                score: 1
+            },
+        }]
+    ) as PipelineStage[];
+};
+
 export const getDocuments = async (tokens: string[]) => {
     try {
-        const weightTfIdf = 0.7;
-        const weighPageRank = 0.3;
         const docCount = await DocumentModel.countDocuments({ processStatus: "processed" });
+        let count = 0;
+        const startTime = performance.now();
+        const countRes: { count: number }[] = await TokenModel.aggregate([...retrieveBaseAggregation(tokens, docCount), { $count: 'count' }]).exec();
+        const endTime = performance.now();
+        if (countRes.length === 1) {
+            count = countRes[0].count;
+        }
         const res: {
             _id: Types.ObjectId;
             content: string;
             tfIdfScore: number;
             pageRank: number;
             score: number;
+            url: string;
+            title: string;
         }[] = await TokenModel.aggregate([
+            ...retrieveBaseAggregation(tokens, docCount),
             {
-                $match: {
-                    value: {
-                        $in: tokens,
-                    },
-                },
+                $limit: 10
             },
             {
                 $lookup: {
-                    from: documentTokenSchemaInfo.collectionName,
-                    localField: "_id",
-                    foreignField: "tokenId",
-                    as: "documents",
-                    pipeline: [
-                        {
-                            $project: {
-                                _id: 0,
-                                tokenId: 0,
-                            },
-                        },
-                    ],
-                },
-            },
-            {
-                $addFields: {
-                    tid: "$_id",
-                    document: "$documents",
-                },
-            },
-            {
-                $project: {
-                    documents: 0,
-                },
-            },
-            {
-                $unwind: "$document",
-            },
-            {
-                $addFields: {
-                    tf: "$document.tf",
-                },
-            },
-            {
-                $lookup: {
-                    from: frequencySchemaInfo.collectionName,
-                    localField: "tid",
+                    from: urlFrontierSchemaInfo.collectionName,
+                    localField: "url",
                     foreignField: "_id",
-                    as: "frequency",
+                    as: "url",
                     pipeline: [
                         {
                             $project: {
-                                documentFrequency: 1,
-                            },
-                        },
-                    ],
-                },
-            },
-            {
-                $unwind: "$frequency",
-            },
-            {
-                $addFields: {
-                    df: "$frequency.documentFrequency",
-                    documentId: "$document.documentId",
-                },
-            },
-            {
-                $project: {
-                    frequency: 0,
-                    document: 0,
-                },
-            },
-            {
-                $addFields: {
-                    tfIdf: {
-                        $multiply: [
-                            {
-                                $log10: {
-                                    $add: [1, "$tf"],
-                                },
-                            },
-                            {
-                                $log10: {
-                                    $divide: [
-                                        {
-                                            $literal: docCount,
-                                        },
-                                        "$df",
-                                    ],
-                                },
-                            },
-                        ],
-                    },
-                },
-            },
-            {
-                $lookup: {
-                    from: documentSchemaInfo.collectionName,
-                    localField: "documentId",
-                    foreignField: "_id",
-                    as: "document",
-                    pipeline: [
-                        {
-                            $project: {
-                                rawContent: 1,
-                                pageRank: 1,
                                 url: 1,
                             },
                         },
                     ],
-                }
+                },
             },
             {
-                $unwind: "$document"
-            },
-            {
-                $group: {
-                    _id: "$documentId",
-                    document: {
-                        $first: "$document",
-                    },
-                    tokens: {
-                        $addToSet: {
-                            tid: "$tid",
-                            value: "$value",
-                            tf: "$tf",
-                        },
-                    },
-                    tfIdfScore: {
-                        $sum: "$tfIdf",
-                    },
-                }
+                $unwind: "$url",
             },
             {
                 $addFields: {
-                    score: {
-                        $add: [
-                            { $multiply: [weightTfIdf, "$tfIdfScore"], },
-                            { $multiply: [weighPageRank, "$document.pageRank"], },
-                        ],
-                    },
+                    url: "$url.url"
                 }
-            },
-            {
-                $sort: {
-                    score: -1,
-                },
-            },
-            {
-                $project: {
-                    _id: "$document._id",
-                    content: "$document.rawContent",
-                    tfIdfScore: 1,
-                    pageRank: "$document.pageRank",
-                    score: 1
-                },
-            },
-            {
-                $limit: 10
             }
         ], {
             allowDiskUse: true
         }).exec();
-        return res;
+        return {
+            res, count, time: Math.round(endTime - startTime)
+        };
     } catch (e) {
         console.error(e);
         return null;

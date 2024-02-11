@@ -12,10 +12,12 @@ export const queryDocuments: RequestHandler = async (req, res, next) => {
     const queryTokens = extractPersianWords(body.queryString).map(stemmer);
     const result = await getDocuments(queryTokens);
 
-    if (!Array.isArray(result)) return res.json({ ok: false });
+    if (!Array.isArray(result?.res)) return res.json({ ok: false });
 
     res.json({
         ok: true,
-        result
+        retrieveTime: result.time,
+        totalCount: result.count,
+        result: result.res
     });
 };
