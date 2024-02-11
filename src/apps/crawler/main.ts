@@ -65,6 +65,7 @@ const doCycle = async () => {
                 createDate: new Date(),
                 processStatus: "not_processed",
                 url: urlToCrawl._id.toString(),
+                pageRank: 0,
                 title: content.title,
                 rawHtml: content.rawHtml,
                 rawContent: content.rawText,

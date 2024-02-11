@@ -11,6 +11,7 @@
     "process": "node ./build/apps/documentProcess/main.js",
     "db:index": "node ./build/infrastructure/mongo/ensureIndexes.js",
     "relation": "node ./build/jobs/relation.js",
+    "pageRank": "node ./build/jobs/pageRank.js",
     "frequency": "node ./build/jobs/calculateFrequency.js",
     "addDocsTitle": "node ./build/jobs/addDocsTitle.js",
     "server": "node ./build/apps/server/main.js"

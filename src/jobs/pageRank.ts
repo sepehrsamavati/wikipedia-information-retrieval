@@ -82,4 +82,15 @@ links.forEach(link => {
 
 const pageRankValues = calculatePageRank(graph, dampingFactor, maxIterations);
 
+const docCount = Object.keys(pageRankValues).length;
+let insertCount = 0;
+for (const [docId, pageRank] of Object.entries(pageRankValues)) {
+    console.log(`${++insertCount}/${docCount}`);
+    try {
+        await DocumentModel.findByIdAndUpdate(docId, { pageRank });
+    } catch (e) {
+        console.error(e);
+    }
+}
+
 await closeConnection();

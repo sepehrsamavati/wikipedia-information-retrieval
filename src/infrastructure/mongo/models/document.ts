@@ -20,6 +20,11 @@ const schema = new mongoose.Schema<Document>({
         type: String,
         required: true,
     },
+    pageRank: {
+        type: Number,
+        required: true,
+        default: 0
+    },
     rawContent: {
         type: String,
         required: true,

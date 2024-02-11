@@ -9,6 +9,7 @@ export type Document = {
     rawContent: string;
     rawHtml: string;
     url: string;
+    pageRank: number;
     processStatus: DocumentProcessStatuses;
     createDate: Date;
     processDate?: Date;
