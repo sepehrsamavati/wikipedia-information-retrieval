@@ -12,12 +12,7 @@ const schema = new mongoose.Schema<Token>({
         type: String,
         unique: true,
         required: true,
-    },
-    documents: [{
-        type: mongoose.Types.ObjectId,
-        ref: documentSchemaInfo.modelName,
-        required: true,
-    }]
+    }
 }, { versionKey: false, collection: tokenSchemaInfo.collectionName });
 
 const TokenModel = mongoose.model(tokenSchemaInfo.modelName, schema);

@@ -2,22 +2,33 @@ import type { PipelineStage, Types } from "mongoose";
 import TokenModel from "../models/token.js";
 import { frequencySchemaInfo } from "../models/frequency.js";
 import { urlFrontierSchemaInfo } from "../models/urlFrontier.js";
-import { documentTokenSchemaInfo } from "../models/documentToken.js";
 import DocumentModel, { documentSchemaInfo } from "../models/document.js";
+import DocumentTokenModel, { documentTokenSchemaInfo } from "../models/documentToken.js";
 
 export const upsert = async (token: string, documentId: Types.ObjectId | string) => {
     try {
+        let tokenId: Types.ObjectId;
         const alreadyAdded = await TokenModel.exists({ value: token });
         if (alreadyAdded) {
             const res = await TokenModel.findByIdAndUpdate(alreadyAdded._id, { $push: { documents: documentId } });
-            return res !== null;
+            if (!res) return null;
+            tokenId = res._id;
         } else {
             const res = await TokenModel.create({
-                value: token,
-                documents: [documentId]
+                value: token
             });
-            return res !== null;
+            if (!res) return null;
+            tokenId = res._id;
         }
+        const documentToken = await DocumentTokenModel.exists({ tokenId, documentId });
+        if (documentToken) {
+            await DocumentTokenModel.findByIdAndUpdate(documentToken._id, { $inc: { tf: 1 } });
+        } else {
+            await DocumentTokenModel.create({
+                tokenId, documentId, tf: 1
+            });
+        }
+        return tokenId;
     } catch {
         return null;
     }
@@ -64,6 +75,10 @@ export const calculateFrequency = async () => {
     }
 };
 
+/**
+ * 
+ * @deprecated
+ */
 export const calculateTokenFrequency = async () => {
     try {
         await TokenModel.aggregate([
