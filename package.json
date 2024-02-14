@@ -6,12 +6,12 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "crawler": "node ./build/apps/crawler/main.js",
-    "crawler:seed": "node ./build/apps/crawler/seed.js",
-    "process": "node ./build/apps/documentProcess/main.js",
     "db:index": "node ./build/infrastructure/mongo/ensureIndexes.js",
+    "crawler:seed": "node ./build/apps/crawler/seed.js",
+    "crawler": "node ./build/apps/crawler/main.js",
     "relation": "node ./build/jobs/relation.js",
     "pageRank": "node ./build/jobs/pageRank.js",
+    "process": "node ./build/apps/documentProcess/main.js",
     "frequency": "node ./build/jobs/calculateFrequency.js",
     "server": "node ./build/apps/server/main.js"
   },
