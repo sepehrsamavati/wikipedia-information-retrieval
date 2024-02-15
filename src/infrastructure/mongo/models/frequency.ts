@@ -15,12 +15,7 @@ const schema = new mongoose.Schema<Frequency>({
     documentFrequency: {
         type: Number,
         required: true,
-    },
-    uniqueDocuments: [{
-        type: mongoose.Types.ObjectId,
-        ref: documentSchemaInfo.modelName,
-        required: true,
-    }]
+    }
 }, { versionKey: false, collection: frequencySchemaInfo.collectionName });
 
 const FrequencyModel = mongoose.model(frequencySchemaInfo.modelName, schema);

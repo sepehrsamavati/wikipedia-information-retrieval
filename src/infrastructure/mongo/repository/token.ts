@@ -29,39 +29,20 @@ export const upsert = async (token: string, documentId: Types.ObjectId | string)
             });
         }
         return tokenId;
-    } catch {
+    } catch (err) {
+        console.error(err);
         return null;
     }
 };
 
 export const calculateFrequency = async () => {
     try {
-        await TokenModel.aggregate([
+        await DocumentTokenModel.aggregate([
             {
-                $addFields: {
-                    collectionFrequency: {
-                        $size: "$documents",
-                    },
-                },
-            },
-            {
-                $sort: {
-                    collectionFrequency: -1,
-                },
-            },
-            {
-                $project: {
-                    collectionFrequency: 1,
-                    uniqueDocuments: {
-                        $setUnion: ["$documents"],
-                    },
-                },
-            },
-            {
-                $addFields: {
-                    documentFrequency: {
-                        $size: "$uniqueDocuments",
-                    },
+                $group: {
+                    _id: "$tokenId",
+                    documentFrequency: { $sum: 1, },
+                    collectionFrequency: { $sum: "$tf", },
                 },
             },
             {
