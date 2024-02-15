@@ -1,7 +1,7 @@
 import type { PipelineStage, Types } from "mongoose";
 import TokenModel from "../models/token.js";
-import { frequencySchemaInfo } from "../models/frequency.js";
 import { urlFrontierSchemaInfo } from "../models/urlFrontier.js";
+import { tokenFrequencySchemaInfo } from "../models/tokenFrequency.js";
 import DocumentModel, { documentSchemaInfo } from "../models/document.js";
 import DocumentTokenModel, { documentTokenSchemaInfo } from "../models/documentToken.js";
 
@@ -46,7 +46,7 @@ export const calculateFrequency = async () => {
                 },
             },
             {
-                $out: frequencySchemaInfo.collectionName,
+                $out: tokenFrequencySchemaInfo.collectionName,
             },
         ]);
         return true;
@@ -145,7 +145,7 @@ const retrieveBaseAggregation = (tokens: string[], docCount: number) => {
         },
         {
             $lookup: {
-                from: frequencySchemaInfo.collectionName,
+                from: tokenFrequencySchemaInfo.collectionName,
                 localField: "tid",
                 foreignField: "_id",
                 as: "frequency",
