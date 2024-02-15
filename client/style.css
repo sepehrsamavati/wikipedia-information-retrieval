@@ -102,6 +102,7 @@ body {
     border-top-left-radius: 2em;
     border-bottom-left-radius: 2em;
     cursor: pointer;
+    font-family: inherit;
 }
 
 #result {
@@ -127,6 +128,7 @@ body {
 
 .result-item .link {
     max-width: 50%;
+    direction: ltr;
     text-overflow: ellipsis;
     display: inline-block;
     white-space: nowrap;
