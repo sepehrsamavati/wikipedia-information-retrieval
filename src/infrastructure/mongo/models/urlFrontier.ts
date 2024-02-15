@@ -11,6 +11,10 @@ const schema = new mongoose.Schema<UrlFrontierUrl>({
         type: String,
         required: false,
     },
+    redirectTo: {
+        type: String,
+        required: false,
+    },
     parentUrl: {
         type: mongoose.Types.ObjectId,
         ref: urlFrontierSchemaInfo.modelName

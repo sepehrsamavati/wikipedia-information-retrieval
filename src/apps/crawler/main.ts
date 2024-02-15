@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import fetchWorker from "./main.worker.js";
 import { connect } from "../../infrastructure/mongo/connection.js";
 import { add as addDocument } from "../../infrastructure/mongo/repository/document.js";
-import { add as addUrl, addLinkedBy, count, exists, setStatusById, takeUrl } from "../../infrastructure/mongo/repository/urlFrontier.js";
+import { add as addUrl, addLinkedBy, count, exists, setStatusById, takeUrl, setRedirectToById } from "../../infrastructure/mongo/repository/urlFrontier.js";
 
 const workerId = `${process.pid}:${randomUUID()}`;
 let doNotAdd = false;
@@ -23,6 +23,7 @@ const doCycle = async () => {
                 text: string;
                 url: string;
             }[];
+            redirectToPath: string | null;
         } | null = null;
 
         try {
@@ -33,7 +34,7 @@ const doCycle = async () => {
             await setStatusById(urlToCrawl._id, "error");
         }
 
-        if (content) {
+        if (content && content.redirectToPath === null) {
             const urlsCount = await count();
             if (urlsCount !== null && !doNotAdd) {
                 if (urlsCount < config.crawler.urlFrontierCountLimit) {
@@ -71,6 +72,13 @@ const doCycle = async () => {
                 rawContent: content.rawText,
             });
         }
+
+        if (content && content.redirectToPath) {
+            const url = new URL(urlToCrawl.url);
+            url.pathname = content.redirectToPath;
+            await setRedirectToById(urlToCrawl._id, url.toString());
+        }
+
         if (!errorOccurred)
             await setStatusById(urlToCrawl._id, "visited");
     }

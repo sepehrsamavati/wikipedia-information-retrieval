@@ -5,6 +5,7 @@ export type UrlCrawlStatus = typeof crawlStatuses[number];
 export type UrlFrontierUrl = {
     parentUrl?: string;
     linkedBy: string[];
+    redirectTo?: string;
     crawlerId?: string;
     url: string;
     priority?: number;

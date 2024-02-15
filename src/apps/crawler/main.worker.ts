@@ -4,6 +4,7 @@ import isRelated from "./modules/isRelated.js";
 import isPersian from "./modules/isPersian.js";
 import getRawText from "./modules/getRawText.js";
 import getPageLinks from "./modules/getPageLinks.js";
+import redirectDetect from "./modules/redirectDetect.js";
 
 export default async function ([url]: [string]) {
     const rawHtml = await (await fetch(url)).text();
@@ -16,6 +17,18 @@ export default async function ([url]: [string]) {
             style: false,
         }
     });
+
+    const redirectToPath = redirectDetect(root);
+
+    if (redirectToPath) {
+        return {
+            title: "",
+            rawHtml: "",
+            rawText: "",
+            links: [],
+            redirectToPath
+        };
+    }
 
     const rawText = getRawText(root);
 
@@ -31,6 +44,7 @@ export default async function ([url]: [string]) {
         title: getTitle(root),
         rawHtml: root.innerHTML,
         rawText,
-        links: childLinks
+        links: childLinks,
+        redirectToPath: null
     };
 }

@@ -37,6 +37,15 @@ export const takeUrl = async (crawlerId: string) => {
     }
 };
 
+export const setRedirectToById = async (_id: Types.ObjectId | string, redirectTo: string) => {
+    try {
+        const res = await UrlFrontierModel.findByIdAndUpdate<UrlFrontierUrl>(_id, { redirectTo });
+        return true;
+    } catch {
+        return false;
+    }
+};
+
 export const setStatusById = async (_id: Types.ObjectId | string, status: UrlCrawlStatus) => {
     try {
         const updateObject: Partial<UrlFrontierUrl> = { status };
