@@ -57,7 +57,7 @@ function calculatePageRank(graph: Graph, dampingFactor: number, maxIterations: n
     }
 
     for (const pageRank in pageRankValues) {
-        pageRankValues[pageRank] *= 1e4;
+        pageRankValues[pageRank] *= 200;
     }
 
     return pageRankValues;
