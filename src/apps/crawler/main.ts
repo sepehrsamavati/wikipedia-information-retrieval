@@ -83,7 +83,7 @@ const doCycle = async () => {
             await setStatusById(urlToCrawl._id, "visited");
     }
 
-    setTimeout(doCycle, 1e3);
+    setTimeout(doCycle, config.crawler.cycleTimeGap);
 };
 
 doCycle();
