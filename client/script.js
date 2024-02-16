@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const body = document.createElement('div');
             body.classList.add('body');
-            body.innerText = item.content;
+            body.append(highlighter(item.content) ?? item.content);
 
             const info = document.createElement('div');
             info.classList.add('info');
@@ -129,6 +129,77 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.suggestion.append(row);
         });
     };
+
+    /**
+     * 
+     * @param {string} text 
+     * @returns {string}
+     */
+    // @ts-ignore
+    const removeDiacritics = (text) => text.replaceAll(/(ّ|َ|ِ|ُ|ً|ٍ|ٌ|ْ|ء)/g, '').replaceAll(/(إ|أ)/g, 'ا').replaceAll(/(ي|ئ)/g, 'ی').replaceAll(/ؤ/g, 'و').replaceAll(/ك/g, 'ک').replaceAll(/(ۀ|ة|هٔ)/g, 'ه');
+
+    /**
+     * 
+     * @param {string} result 
+     */
+    const highlighter = (result) => {
+        const _result = removeDiacritics(result).split(/\s/g).map(w => ({ word: w, show: false, highlight: false }));
+        const _query = removeDiacritics(elements.searchInput.value);
+        const beforeCount = 8, afterCount = 15;
+        const words = _query.split(/\s/g).filter(w => w.length > 1);
+
+        const shouldHighlight = [];
+        words.forEach(word => {
+            const highlightIndex = _result.findIndex(item => item.word.includes(word));
+            if (highlightIndex !== -1) {
+                shouldHighlight.push(highlightIndex);
+            }
+        });
+
+        _result.forEach((item, index) => {
+            if (shouldHighlight.find(highlightIndex => highlightIndex === index)) {
+                item.highlight = true;
+                item.show = true;
+            }
+            else if (
+                shouldHighlight.find(highlightIndex => (
+                    highlightIndex - beforeCount <= index
+                    && highlightIndex > index
+                )) || shouldHighlight.find(highlightIndex => (
+                    highlightIndex + afterCount >= index
+                    && highlightIndex < index
+                ))
+            ) {
+                item.show = true;
+            }
+        });
+
+        if (_result.filter(item => item.show).length === 0)
+            return null;
+
+        const wrapperEl = document.createElement("div");
+        wrapperEl.classList.add("word-list");
+        _result.forEach((item, index) => {
+            if (!item.show) {
+                return null;
+            }
+
+            const wordEl = document.createElement("span");
+            wordEl.innerText = `${item.word}`;
+
+            if (_result[index - 1] && !_result[index - 1].show) {
+                wordEl.innerText = `... ${wordEl.innerText}`;
+            } else if (_result[index + 1] && !_result[index + 1].show) {
+                wordEl.innerText = `${wordEl.innerText} ...`;
+            }
+
+            if (item.highlight) {
+                wordEl.classList.add("highlight");
+            }
+            wrapperEl.append(wordEl);
+        });
+        return wrapperEl;
+    }
 
     elements.searchInput.addEventListener('input', event => {
         if (inputTimer) window.clearTimeout(inputTimer);
