@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const info = document.createElement('div');
             info.classList.add('info');
-            info.innerHTML = `<span>Score: ${item.score}</span>` + `<span>Page rank: ${item.pageRank}</span>` + `<span>TF-IDF Score: ${item.tfIdfScore}</span>`;
+            info.innerHTML = `<span>Score: ${item.score.toFixed(4)}</span>` + `<span>Page rank: ${item.pageRank.toFixed(4)}</span>` + `<span>TF-IDF Score: ${item.tfIdfScore.toFixed(4)}</span>`;
 
             [title, link, body, info].forEach(el => resultItem.append(el));
 
