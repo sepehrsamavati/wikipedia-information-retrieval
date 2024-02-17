@@ -191,6 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 wordEl.innerText = `... ${wordEl.innerText}`;
             } else if (_result[index + 1] && !_result[index + 1].show) {
                 wordEl.innerText = `${wordEl.innerText} ...`;
+            } else {
+                wordEl.innerText += ' ';
             }
 
             if (item.highlight) {

@@ -13,7 +13,18 @@
     --active-hover: var(--active-hover-light);
     --secondary-bg: var(--light-text);
 
-    --font-family: IranSans, sans-serif;
+    --font-family:  'Sahel', IranSans, sans-serif;
+}
+
+@font-face {
+    font-family: 'Sahel';
+    src:
+        url('./fonts/sahel/sahel-fd.woff') format('woff'),
+        url('./fonts/sahel/sahel-fd.ttf') format('truetype'),
+        url('./fonts/sahel/sahel-fd.eot') format('embedded-opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
 }
 
 * {
@@ -42,6 +53,8 @@ body {
     justify-content: space-between;
     flex-direction: column;
     font-family: var(--font-family);
+    margin: 0;
+    padding: 0.6em;
 }
 
 #search {
@@ -145,11 +158,7 @@ body {
 	margin: 0.2em;
 	border-radius: 0.3em;
 	display: inline-block;
-	font-size: 0.8em;
-}
-
-.result-item .word-list span {
-    margin-inline-end: 0.3em;
+    font-family: monospace;
 }
 
 .result-item .word-list .highlight {
