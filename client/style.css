@@ -19,9 +19,9 @@
 @font-face {
     font-family: 'Sahel';
     src:
-        url('./fonts/sahel/sahel-fd.woff') format('woff'),
-        url('./fonts/sahel/sahel-fd.ttf') format('truetype'),
-        url('./fonts/sahel/sahel-fd.eot') format('embedded-opentype');
+        url('./fonts/sahel/Sahel-FD.woff') format('woff'),
+        url('./fonts/sahel/Sahel-FD.ttf') format('truetype'),
+        url('./fonts/sahel/Sahel-FD.eot') format('embedded-opentype');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
